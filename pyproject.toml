@@ -1,0 +1,47 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name            = "fastagents"
+version         = "0.0.1"
+description     = "FastAgents research prototype"
+readme          = "README.md"
+requires-python = ">=3.11"
+license         = { text = "MIT" }
+authors         = [{ name = "Somsubhro Bagchi", email = "somsubhro.bagchi@gmail.com" }]
+dependencies    = []                      # runtime deps (none yet)
+
+[project.optional-dependencies]
+dev = [
+  "black==24.4.2",
+  "ruff==0.4.5",
+  "mypy==1.10.0",
+  "pytest==8.2.0",
+  "pre-commit==3.7.0"
+]
+
+# -------------------------------
+# Tool-specific configuration
+# -------------------------------
+[tool.black]
+line-length    = 88
+target-version = ["py311"]
+
+[tool.ruff]
+line-length    = 88
+target-version = "py311"
+exclude        = ["build", ".venv"]
+select         = ["E", "F", "B", "I"]     # errors, flakes, bugbear, isort-style
+
+[tool.mypy]
+python_version        = "3.11"
+strict                = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+addopts    = "-q"
+testpaths = ["tests"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fastagents"]
