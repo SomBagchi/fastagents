@@ -11,22 +11,65 @@ jobs:
         python-version: ["3.11"]
 
     steps:
+      # ─────────────────────────────────────────
+      # 1  Checkout repo
+      # ─────────────────────────────────────────
       - uses: actions/checkout@v4
 
+      # ─────────────────────────────────────────
+      # 2  Enable BuildKit / Buildx
+      # ─────────────────────────────────────────
+      - uses: docker/setup-buildx-action@v3
+
+      # ─────────────────────────────────────────
+      # 3  Cache Docker layers
+      #    • first run ⇒ populate cache
+      #    • later runs ⇒ pull cache, skip unchanged layers
+      # ─────────────────────────────────────────
+      - name: Docker layer cache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-bashimg-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-bashimg-
+
+      # ─────────────────────────────────────────
+      # 4  Build the Bash sandbox image
+      # ─────────────────────────────────────────
+      - name: Build Bash sandbox image
+        run: |
+          docker build \
+            --cache-from=type=local,src=/tmp/.buildx-cache \
+            --cache-to=type=local,dest=/tmp/.buildx-cache,mode=max \
+            -t fastagents-bash:0.1 docker/
+
+      # ─────────────────────────────────────────
+      # 5  Set up Python
+      # ─────────────────────────────────────────
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          cache: pip               # speeds uv installs
 
+      # ─────────────────────────────────────────
+      # 6  Install uv & project deps
+      # ─────────────────────────────────────────
       - name: Install uv (fast pip replacement)
-        run: |
-          pip install uv
+        run: pip install uv
 
-      - name: Set up env, install deps, run checks
+      - name: Create venv, install deps
         run: |
           uv venv .venv
           source .venv/bin/activate
-          uv pip install -e .[dev]
+          uv pip install -e ".[dev]"
 
+      # ─────────────────────────────────────────
+      # 7  Lint & test
+      # ─────────────────────────────────────────
+      - name: Run linters and tests
+        run: |
+          source .venv/bin/activate
           pre-commit run --all-files --show-diff-on-failure
           pytest -q
