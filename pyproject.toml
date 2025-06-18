@@ -10,7 +10,9 @@ readme          = "README.md"
 requires-python = ">=3.11"
 license         = { text = "MIT" }
 authors         = [{ name = "Somsubhro Bagchi", email = "somsubhro.bagchi@gmail.com" }]
-dependencies    = []                      # runtime deps (none yet)
+dependencies    = [
+    "docker>=7.1.0",
+]                      # runtime deps
 
 [project.optional-dependencies]
 dev = [
