@@ -19,7 +19,11 @@ jobs:
       # ─────────────────────────────────────────
       # 2  Enable BuildKit / Buildx
       # ─────────────────────────────────────────
-      - uses: docker/setup-buildx-action@v3
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker-container
+          buildkitd-flags: --debug
 
       # ─────────────────────────────────────────
       # 3  Cache Docker layers
@@ -39,10 +43,12 @@ jobs:
       # ─────────────────────────────────────────
       - name: Build Bash sandbox image
         run: |
-          docker build \
-            --cache-from=type=local,src=/tmp/.buildx-cache \
-            --cache-to=type=local,dest=/tmp/.buildx-cache,mode=max \
-            -t fastagents-bash:0.1 docker/
+          docker buildx build \
+            --cache-from type=local,src=/tmp/.buildx-cache \
+            --cache-to   type=local,dest=/tmp/.buildx-cache,mode=max \
+            --tag fastagents-bash:0.1 \
+            --load \
+            docker/
 
       # ─────────────────────────────────────────
       # 5  Set up Python
